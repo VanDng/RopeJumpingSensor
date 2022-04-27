@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@mediapipe/pose": "~0.4.0",
-    "@tensorflow-models/pose-detection": "file:../../dist",
+    "@tensorflow-models/pose-detection": "^2.0.0",
     "@tensorflow/tfjs-backend-wasm": "^3.8.0",
     "@tensorflow/tfjs-backend-webgl": "^3.8.0",
     "@tensorflow/tfjs-converter": "^3.8.0",
