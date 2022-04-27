@@ -1,4 +1,4 @@
-# RopeJumpingSensor
+# Workout Assistant
 
 # How to Run
 
