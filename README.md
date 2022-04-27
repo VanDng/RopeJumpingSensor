@@ -8,9 +8,9 @@ Follow these steps:
 
 2. Install dependencies. `yarn`
 
-3. Run the demo. `yarn watch`
+3. Run the app. `yarn watch`
 
-4. The demo runs at `localhost:1234`. (Remember to provide URL model parameter e. g. `localhost:1234/?model=movenet`)
+4. The app runs at `localhost:1234`. (Remember to provide URL model parameter e. g. `localhost:1234/?model=movenet`)
 
 # Credit
 
