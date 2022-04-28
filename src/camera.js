@@ -61,6 +61,11 @@ export class Camera {
       'styles': {polyline: {defaultOpacity: 1, deselectedOpacity: 1}}
     });
     this.scatterGLHasInitialized = false;
+    this.poseDrawnCallback = null;
+  }
+
+  setDrawCallback(drawCallback) {
+    this.poseDrawnCallback = drawCallback;
   }
 
   /**
@@ -137,6 +142,31 @@ export class Camera {
     this.ctx.clearRect(0, 0, this.video.videoWidth, this.video.videoHeight);
   }
 
+  checkScoreKeypoint(keypoint) {
+    // If score is null, just show the keypoint.
+    const score = keypoint.score != null ? keypoint.score : 1;
+    const scoreThreshold = params.STATE.modelConfig.scoreThreshold || 0;
+
+    if (score >= scoreThreshold) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  checkScoreKeypoints(keypoints) {
+    var isConfident = false;
+
+    for (const keypoint of keypoints) {
+      isConfident = this.checkScoreKeypoint(keypoint);
+      if (isConfident) {
+        break;
+      }
+    }
+
+    return isConfident;
+  }
+
   /**
    * Draw the keypoints and skeleton on the video.
    * @param poses A list of poses to render.
@@ -155,6 +185,15 @@ export class Camera {
     if (pose.keypoints != null) {
       this.drawKeypoints(pose.keypoints);
       this.drawSkeleton(pose.keypoints, pose.id);
+
+      // If the keypoint's score greater than the threshold, it should be drawn already
+      // A callback will tell the chart to update its data accordingly.
+      if (this.checkScoreKeypoints(pose.keypoints)) {
+        this.poseDrawnCallback?.(pose.keypoints, {
+          width: this.video.videoWidth,
+          height: this.video.videoHeight
+        });
+      }
     }
     if (pose.keypoints3D != null && params.STATE.modelConfig.render3D) {
       this.drawKeypoints3D(pose.keypoints3D);
@@ -188,11 +227,9 @@ export class Camera {
   }
 
   drawKeypoint(keypoint) {
-    // If score is null, just show the keypoint.
-    const score = keypoint.score != null ? keypoint.score : 1;
-    const scoreThreshold = params.STATE.modelConfig.scoreThreshold || 0;
+    var isConfidentEnough = this.checkScoreKeypoint(keypoint);
 
-    if (score >= scoreThreshold) {
+    if (isConfidentEnough) {
       const circle = new Path2D();
       circle.arc(keypoint.x, keypoint.y, params.DEFAULT_RADIUS, 0, 2 * Math.PI);
       this.ctx.fill(circle);

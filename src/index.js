@@ -31,6 +31,7 @@ import {setupDatGui} from './option_panel';
 import {STATE} from './params';
 import {setupStats} from './stats_panel';
 import {setBackendAndEnvFlags} from './util';
+import {PoseChart} from './pose_chart';
 
 let detector, camera, stats;
 let startInferenceTime, numInferences = 0;
@@ -189,15 +190,19 @@ async function app() {
   // Gui content will change depending on which model is in the query string.
   const urlParams = new URLSearchParams(window.location.search);
   if (!urlParams.has('model')) {
-    alert('Cannot find model in the query string.');
+    window.location.href = "http://" + window.location.host + "/?model=movenet";
     return;
   }
 
-  await setupDatGui(urlParams);
+  var datGUI = await setupDatGui(urlParams);
+  datGUI.close();
 
   stats = setupStats();
 
+  var poseChart = await PoseChart.setupPoseChart();
+
   camera = await Camera.setupCamera(STATE.camera);
+  camera.setDrawCallback(poseChart.drawPose.bind(poseChart));
 
   await setBackendAndEnvFlags(STATE.flags, STATE.backend);
 
