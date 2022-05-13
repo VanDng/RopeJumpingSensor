@@ -31,9 +31,12 @@ import {setupDatGui} from './option_panel';
 import {STATE} from './params';
 import {setupStats} from './stats_panel';
 import {setBackendAndEnvFlags} from './util';
-import {PoseChart} from './pose_chart';
+import {KeypointChart} from './charts/keypoint-chart';
+import {EdgeChart} from './charts/edge-chart';
+import {RopeJumping} from './predictions/rope-jumping';
 
-let detector, camera, stats;
+let ropeJumping;
+let detector, camera, stats, keypointChart, edgeChart;
 let startInferenceTime, numInferences = 0;
 let inferenceTimeSum = 0, lastPanelUpdate = 0;
 let rafId;
@@ -173,6 +176,18 @@ async function renderResult() {
   // which shouldn't be rendered.
   if (poses && poses.length > 0 && !STATE.isModelChanged) {
     camera.drawResults(poses);
+
+    var imageSize = {
+      height: camera.video.videoHeight,
+      width: camera.video.videoWidth
+    }
+
+    for (const pose of poses) {
+      var normalizedKeypoints = posedetection.calculators.keypointsToNormalizedKeypoints(pose.keypoints, imageSize);
+      
+      keypointChart.drawKeypoints(normalizedKeypoints);
+      ropeJumping.predict(normalizedKeypoints);
+    }
   }
 }
 
@@ -199,10 +214,15 @@ async function app() {
 
   stats = setupStats();
 
-  var poseChart = await PoseChart.setupPoseChart();
+  keypointChart = await KeypointChart.setupKeypointChart();
+
+  edgeChart = await EdgeChart.setupEdgeChart();
+
+  ropeJumping = new RopeJumping();
+  ropeJumping.onEdgepointAdded = edgeChart.addEdgePoint.bind(edgeChart);
+  //ropeJumping.onEdgepointRemoved = edgeChart.removeEdgePoint.bind(edgeChart);
 
   camera = await Camera.setupCamera(STATE.camera);
-  camera.setDrawCallback(poseChart.drawPose.bind(poseChart));
 
   await setBackendAndEnvFlags(STATE.flags, STATE.backend);
 

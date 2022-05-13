@@ -16,6 +16,7 @@
  */
 import * as tf from '@tensorflow/tfjs-core';
 import {TUNABLE_FLAG_VALUE_RANGE_MAP} from './params';
+import * as params from './params';
 
 export function isiOS() {
   return /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -97,3 +98,28 @@ export async function setBackendAndEnvFlags(flagConfig, backend) {
     await resetBackend($backend);
   }
 }
+
+export function isKeypointConfident(keypoint) {
+  // If score is null, just show the keypoint.
+  const score = keypoint.score != null ? keypoint.score : 1;
+  const scoreThreshold = params.STATE.modelConfig.scoreThreshold || 0;
+
+  if (score >= scoreThreshold) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+// export function isKeypointsConfident(keypoints) {
+//   var isConfident = false;
+
+//   for (const keypoint of keypoints) {
+//     isConfident = this.checkScoreKeypoint(keypoint);
+//     if (isConfident) {
+//       break;
+//     }
+//   }
+
+//   return isConfident;
+// }

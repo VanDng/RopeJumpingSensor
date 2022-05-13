@@ -18,7 +18,7 @@ import * as posedetection from '@tensorflow-models/pose-detection';
 import * as scatter from 'scatter-gl';
 
 import * as params from './params';
-import {isMobile} from './util';
+import * as util from './util';
 
 // These anchor points allow the pose pointcloud to resize according to its
 // position in the input.
@@ -86,8 +86,8 @@ export class Camera {
         facingMode: 'user',
         // Only setting the video to a specified size for large screen, on
         // mobile devices accept the default size.
-        width: isMobile() ? params.VIDEO_SIZE['360 X 270'].width : $size.width,
-        height: isMobile() ? params.VIDEO_SIZE['360 X 270'].height :
+        width: util.isMobile() ? params.VIDEO_SIZE['360 X 270'].width : $size.width,
+        height: util.isMobile() ? params.VIDEO_SIZE['360 X 270'].height :
                              $size.height,
         frameRate: {
           ideal: targetFPS,
@@ -142,31 +142,6 @@ export class Camera {
     this.ctx.clearRect(0, 0, this.video.videoWidth, this.video.videoHeight);
   }
 
-  checkScoreKeypoint(keypoint) {
-    // If score is null, just show the keypoint.
-    const score = keypoint.score != null ? keypoint.score : 1;
-    const scoreThreshold = params.STATE.modelConfig.scoreThreshold || 0;
-
-    if (score >= scoreThreshold) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  checkScoreKeypoints(keypoints) {
-    var isConfident = false;
-
-    for (const keypoint of keypoints) {
-      isConfident = this.checkScoreKeypoint(keypoint);
-      if (isConfident) {
-        break;
-      }
-    }
-
-    return isConfident;
-  }
-
   /**
    * Draw the keypoints and skeleton on the video.
    * @param poses A list of poses to render.
@@ -185,15 +160,6 @@ export class Camera {
     if (pose.keypoints != null) {
       this.drawKeypoints(pose.keypoints);
       this.drawSkeleton(pose.keypoints, pose.id);
-
-      // If the keypoint's score greater than the threshold, it should be drawn already
-      // A callback will tell the chart to update its data accordingly.
-      if (this.checkScoreKeypoints(pose.keypoints)) {
-        this.poseDrawnCallback?.(pose.keypoints, {
-          width: this.video.videoWidth,
-          height: this.video.videoHeight
-        });
-      }
     }
     if (pose.keypoints3D != null && params.STATE.modelConfig.render3D) {
       this.drawKeypoints3D(pose.keypoints3D);
@@ -227,9 +193,9 @@ export class Camera {
   }
 
   drawKeypoint(keypoint) {
-    var isConfidentEnough = this.checkScoreKeypoint(keypoint);
+    var isKeypointConfident = util.isKeypointConfident(keypoint);
 
-    if (isConfidentEnough) {
+    if (isKeypointConfident) {
       const circle = new Path2D();
       circle.arc(keypoint.x, keypoint.y, params.DEFAULT_RADIUS, 0, 2 * Math.PI);
       this.ctx.fill(circle);

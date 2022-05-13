@@ -1,15 +1,20 @@
 import * as posedetection from '@tensorflow-models/pose-detection';
 
-export class PoseChart {
+// Reference
+// https://developers.google.com/chart/interactive/docs/gallery/linechart
+
+export class KeypointChart {
     constructor() {
         this.parts = {
-            "left_hip": "Left Hip",
-            "right_hip": "Right Hip"
+            "left_shoulder": "Left Shoulder",
+            //"right_shoulder": "Right Shoulder",
+            //"left_hip": "Left Hip",
+            //"right_hip": "Right Hip"
         };
 
         var headerLine = [ 'Time' ];
         for (const part in this.parts) {
-            headerLine.push(this.parts[part] + " H");
+            //headerLine.push(this.parts[part] + " H");
             headerLine.push(this.parts[part] + " V");
         }
 
@@ -33,16 +38,25 @@ export class PoseChart {
             // vAxis: {
             //     title: "Usage"
             // },
-            legend: { position: 'bottom' }
+            legend: { position: 'bottom' },
+            height: 120,
+            vAxis: { 
+                title: "Percentage Uptime", 
+                viewWindowMode:'explicit',
+                viewWindow:{
+                  max:100,
+                  min:0
+                }
+            }
         };
 
         // draw chart on load
         this.chart = new google.visualization.LineChart(
-            document.getElementById("pose-chart")
+            document.getElementById("keypoints-chart")
         );
     }
 
-    static async setupPoseChart() {
+    static async setupKeypointChart() {
         // load current chart package
         google.charts.load("current", {
             packages: ["corechart", "line"]
@@ -56,13 +70,11 @@ export class PoseChart {
         });
         await chartLoader;
 
-        var chart = new PoseChart();
+        var chart = new KeypointChart();
         return chart;
     }
 
-    drawPose(keypoints, imageSize) {
-         var normalizedKeypoints = posedetection.calculators.keypointsToNormalizedKeypoints(keypoints, imageSize);
-
+    drawKeypoints(keypoints) {
         var isValid = true;
         var newData = [];
 
@@ -71,10 +83,10 @@ export class PoseChart {
         for(const partName in this.parts) {
             isValid = false;
 
-            for(const keypoint of normalizedKeypoints) {
+            for(const keypoint of keypoints) {
                 if (keypoint.name == partName) {
-                    newData.push(keypoint.x * 10.0);
-                    newData.push(keypoint.y * 10.0);
+                    //newData.push(keypoint.x * 100.0);
+                    newData.push(keypoint.y * 100.0);
 
                     isValid = true;
                     break;
@@ -87,6 +99,11 @@ export class PoseChart {
         }
 
         if (isValid) {
+            if (this.data.getNumberOfRows() > 100)
+            {
+                this.data.removeRow(0);
+            }
+
             this.data.addRow(newData);
             this.chart.draw(this.data, this.options);
         }
