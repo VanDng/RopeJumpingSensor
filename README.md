@@ -26,11 +26,13 @@ I chose the pre-trained model [Pose Dection](https://github.com/tensorflow/tfjs-
 
 Because the pre-trained model does not directly counts a full motion but returns keypoints, I have to process the keypoints in order to determine whether a full motion is completed.
 
-My very first step is to eliminate unnecessary prediction results, I call it noise reducing. I think it will be helpful for further step.
+My very first step is to eliminate unnecessary prediction results, I call it noise reducing. I think it will be helpful for further steps.
 
  ![Ts_overall](/doc/noise_reducing.png)
  
- What's next? I dont know haha. I will get back and think more. I jot everything down here mainly for myself, so later I will understand what is going on ~
+ What's next? The idea is to analyse the pattern of waves. The waves in the image above presenting my left shoulder position while I am doing rope jumping. When I jump up and down, the wave goes up and down, respectively.
+ 
+ For the implementation, I dont know haha. I will get back and think more. I jot everything down here mainly for myself, so later I will understand what is going on ~
 
 # How to Run
 
